@@ -1,5 +1,4 @@
 #include "http_header.h"
-#include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 
@@ -37,7 +36,7 @@ void http_header_set_value(http_header header, const char *value)
 void http_header_append(http_header *first, http_header addition)
 {
     assert(first != NULL);
-    
+
     if(*first == NULL) {
         *first = addition;
         return;
@@ -50,6 +49,19 @@ void http_header_append(http_header *first, http_header addition)
         current = next;
     }
     current->next = addition;
+}
+
+size_t http_header_count(http_header first)
+{
+    http_header current = first;
+    http_header next = NULL;
+    size_t result = 0;
+    while(current != NULL) {
+        next = current->next;
+        current = next;
+        result++;
+    }
+    return result;
 }
 
 http_header http_header_destroy(http_header header)

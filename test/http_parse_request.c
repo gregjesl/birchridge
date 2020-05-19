@@ -1,4 +1,5 @@
 #include "http_request.h"
+#include "http_header.h"
 #include "test.h"
 
 int main(void)
@@ -11,6 +12,7 @@ int main(void)
     TEST_EQUAL(result->major_version, 1);
     TEST_EQUAL(result->minor_version, 1);
     TEST_NOT_NULL(result->headers);
+    TEST_EQUAL(http_header_count(result->headers), 1);
     TEST_STRING_EQUAL(result->headers->key, "Content-Length\0");
     TEST_STRING_EQUAL(result->headers->value, "123\0");
     TEST_EQUAL(result->content_length, 123);
