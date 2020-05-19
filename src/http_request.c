@@ -220,7 +220,7 @@ http_request_t http_parse_request(char **stream)
             index = endline + 1;
         }
 
-        http_header header = http_header_init();
+        http_header_t header = http_header_init();
         http_header_set_key(header, key);
         http_header_set_value(header, value);
         http_header_append(&result->headers, header);

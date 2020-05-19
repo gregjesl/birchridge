@@ -25,7 +25,7 @@ typedef struct http_request_struct
     int minor_version;
     int method;
     char *path;
-    http_header headers;
+    http_header_t headers;
     size_t content_length;
     void *context;
     http_body_callback *body_callback;
