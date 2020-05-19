@@ -5,9 +5,6 @@ http_request http_request_init()
 {
     http_request result = (http_request)malloc(sizeof(struct http_request_struct));
 
-    // Set the lead bytes read
-    result->lead_bytes_read = 0;
-
     // Set the version
     result->major_version = -1;
     result->minor_version = -1;
@@ -223,19 +220,10 @@ http_request http_parse_request(char **stream)
             index = endline + 1;
         }
 
-        http_header header = (http_header)malloc(sizeof(struct http_header_struct));
-        header->key = key;
-        header->value = value;
-        header->next = NULL;
-        if(result->headers == NULL) {
-            result->headers = header;
-        } else {
-            http_header current = result->headers;
-            while(current->next != NULL) {
-                current = current->next;
-            }
-            current->next = header;
-        }
+        http_header header = http_header_init();
+        http_header_set_key(header, key);
+        http_header_set_value(header, value);
+        http_header_append(&result->headers, header);
 
         // Check for a special header
         if(strcmp(key, "Content-Length\0") == 0) {
@@ -258,99 +246,11 @@ http_request http_parse_request(char **stream)
     return result;
 }
 
-/*
-int http_request_map(http_request request, const char *data)
-{
-    const char *index = data;
-    const size_t max_bytes = strlen(data);
-
-    // Check for the lead
-    while(request->lead_bytes_read < 5) {
-
-        // Check for end of string
-        if(*index == '\0') {
-            return index - data;
-        }
-
-        const char lead[5] = "HTTP ";
-        if(*index != lead[request->lead_bytes_read]) {
-            return -1;
-        }
-
-        request->lead_bytes_read++;
-        index++;
-    }
-
-    // Check for end
-    if(*index == '\0') return index-data;
-
-    // Check for a major version
-    if(request->major_version < 0) {
-        switch (*index)
-        {
-        case '1':
-            result->major_version = 1;
-            break;
-        case '2':
-            result->major_version = 2;
-            break;
-        default:
-            return -1;
-            break;
-        }
-
-        index++;
-    }
-
-    // Check for end
-    if(*index == '\0') return index-data;
-
-    // Check for minor version
-    if(request->minor_version < 0) {
-        if(*index == '.') {
-            index++;
-            if(*index == '\0') return index - data;
-        }
-
-        switch (*index)
-        {
-        case '0':
-            request->minor_version = 0;
-            break;
-        case '1':
-            request->minor_version = 1;
-            break;
-        case '2':
-            request->minor_version = 2;
-            break;
-        default:
-            return -1;
-            break;
-        }
-
-        index++;
-    }
-
-    // Check for end
-    if(*index == '\0') return index-data;
-
-
-}
-*/
-
 void http_request_destroy(http_request request)
 {
     // Free the path
     free(request->path);
 
     // Free the headers
-    {
-        http_header current = request->headers;
-        while(current != NULL) {
-            http_header next = current->next;
-            free(current->key);
-            free(current->value);
-            current = next;
-        }
-    }
+    http_header_destroy_chain(request->headers);
 }

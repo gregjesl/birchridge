@@ -16,4 +16,5 @@ int main(void)
     TEST_EQUAL(result->content_length, 123);
     TEST_NULL(result->headers->next);
     TEST_EQUAL(strlen(basic), 0);
+    http_request_destroy(result);
 }

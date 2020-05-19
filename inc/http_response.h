@@ -1,0 +1,6 @@
+#ifndef BIRCHRIDGE_HTTP_RESPONSE_H
+#define BIRCHRIDGE_HTTP_RESPONSE_H
+
+
+
+#endif
