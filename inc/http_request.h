@@ -30,10 +30,10 @@ typedef struct http_request_struct
     void *context;
     http_body_callback *body_callback;
     size_t body_remaining;
-} *http_request;
+} *http_request_t;
 
-http_request http_request_init();
-http_request http_parse_request(char **stream);
-void http_request_destroy(http_request request);
+http_request_t http_request_init();
+http_request_t http_parse_request(char **stream);
+void http_request_destroy(http_request_t request);
 
 #endif

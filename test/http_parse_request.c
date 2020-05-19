@@ -5,7 +5,7 @@
 int main(void)
 {
     char *basic = "GET /index.html HTTP/1.1\nContent-Length: 123\n\n\0";
-    http_request result = http_parse_request(&basic);
+    http_request_t result = http_parse_request(&basic);
     TEST_NOT_NULL(result);
     TEST_EQUAL(result->method, HTTP_METHOD_GET);
     TEST_STRING_EQUAL(result->path, "/index.html");

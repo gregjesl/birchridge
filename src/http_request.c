@@ -1,9 +1,9 @@
 #include "http_request.h"
 #include <string.h>
 
-http_request http_request_init()
+http_request_t http_request_init()
 {
-    http_request result = (http_request)malloc(sizeof(struct http_request_struct));
+    http_request_t result = (http_request_t)malloc(sizeof(struct http_request_struct));
 
     // Set the version
     result->major_version = -1;
@@ -69,12 +69,12 @@ size_t scan_int(char value)
     }
 }
 
-http_request http_parse_request(char **stream)
+http_request_t http_parse_request(char **stream)
 {
     char *index = *stream;
 
     // Initialize the result
-    http_request result = http_request_init();
+    http_request_t result = http_request_init();
 
     // Read the method
     {
@@ -246,7 +246,7 @@ http_request http_parse_request(char **stream)
     return result;
 }
 
-void http_request_destroy(http_request request)
+void http_request_destroy(http_request_t request)
 {
     // Free the path
     free(request->path);
