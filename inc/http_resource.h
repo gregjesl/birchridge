@@ -11,6 +11,7 @@ typedef struct http_resource_struct
 } *http_resource_t;
 
 http_resource_t http_resource_parse(const char *resource);
+bool http_path_filter(const char *path, const char *filter);
 void http_resource_destroy(http_resource_t resource);
 
 #endif

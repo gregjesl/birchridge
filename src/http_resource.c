@@ -47,6 +47,48 @@ http_resource_t http_resource_parse(const char *resource)
     return result;
 }
 
+bool http_path_filter(const char *path, const char *filter)
+{
+    const char *path_index = path;
+    const char *filter_index = filter;
+
+    // Iterate through all levels
+    while(strlen(path_index) > 0 && strlen(filter_index) > 0)
+    {
+        // Strip the leading slash
+        if(*path_index != '/' || *filter_index != '/') return false;
+        path_index++;
+        filter_index++;
+
+        // Check for a wildcard
+        if(*filter_index == '#') return true;
+        else if(*filter_index == '*') {
+            filter_index++;
+            const char *next_path = strchr(path_index, '/');
+            if(next_path == NULL) {
+                return strlen(filter_index) > 0 ? false : true;
+            }
+            path_index = next_path;
+            continue;
+        } else {
+            // Get the lengths
+            const char *next_path = strchr(path_index, '/');
+            const size_t path_length = next_path != NULL ? next_path - path_index : strlen(path_index);
+            const char *next_filter = strchr(filter_index, '/');
+            const size_t filter_length = next_filter != NULL ? next_filter - filter_index : strlen(filter_index);
+            if(path_length != filter_length || strncmp(path_index, filter_index, path_length) != 0) return false;
+            if(next_path == NULL) {
+                return next_filter == NULL;
+            } else {
+                path_index = next_path;
+            }
+            if(filter_index == NULL) return false;
+            filter_index = next_filter;
+        }
+    }
+    return true;
+}
+
 void http_resource_destroy(http_resource_t resource)
 {
     key_value_linked_list_destroy(resource->query_parameters);
