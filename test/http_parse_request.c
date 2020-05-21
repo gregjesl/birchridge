@@ -3,11 +3,14 @@
 
 int main(void)
 {
-    char *basic = "GET /index.html HTTP/1.1\nContent-Length: 123\n\n\0";
+    char *basic = "GET /index.html?hello=world HTTP/1.1\nContent-Length: 123\n\n\0";
     http_request_t result = http_parse_request(&basic);
     TEST_NOT_NULL(result);
     TEST_EQUAL(result->method, HTTP_METHOD_GET);
-    TEST_STRING_EQUAL(result->path, "/index.html");
+    TEST_STRING_EQUAL(result->resource->path, "/index.html");
+    TEST_EQUAL(key_value_linked_list_count(result->resource->query_parameters), 1);
+    TEST_STRING_EQUAL(result->resource->query_parameters[0]->key, "hello");
+    TEST_STRING_EQUAL(result->resource->query_parameters[0]->value, "world");
     TEST_EQUAL(result->major_version, 1);
     TEST_EQUAL(result->minor_version, 1);
     TEST_NOT_NULL(result->headers);

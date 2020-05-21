@@ -34,7 +34,10 @@ http_resource_t http_resource_parse(const char *resource)
         key_value_pair_t param = key_value_pair_init();
         key_value_pair_set_key_n(param, index, value_start - index);
         index = value_start + 1;
-        key_value_pair_set_value(param, index);
+
+        const char *endspace = strchr(index, ' ');
+        const size_t last_length = (endspace != NULL) ? endspace - index : strlen(index);
+        key_value_pair_set_value_n(param, index, last_length);
         key_value_linked_list_append(result->query_parameters, param);
     }
 

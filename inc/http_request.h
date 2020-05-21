@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "key_value_pair.h"
+#include "http_resource.h"
 
 enum http_method_enum
 {
@@ -24,7 +25,7 @@ typedef struct http_request_struct
     int major_version;
     int minor_version;
     int method;
-    char *path;
+    http_resource_t resource;
     key_value_linked_list_t headers;
     size_t content_length;
     void *context;

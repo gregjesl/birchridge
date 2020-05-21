@@ -12,9 +12,8 @@ http_request_t http_request_init()
     // Set the method
     result->method = HTTP_METHOD_GET - 1;
 
-    // Set the path
-    result->path = (char*)malloc(sizeof(char));
-    result->path[0] = '\0';
+    // Set the resource
+    result->resource = NULL;
 
     // Set the headers
     result->headers = key_value_linked_list_init();
@@ -114,17 +113,13 @@ http_request_t http_parse_request(char **stream)
 
     // Read the path
     {
-        const char *endline = strchr(index, ' ');
+        char *endline = strchr(index, ' ');
         if(endline == NULL) {
             http_request_destroy(result);
             return NULL;
         }
-        const unsigned int length = endline - index;
-        char *path = (char*)malloc(sizeof(char) * (length + 1));
-        memcpy(path, index, length * sizeof(char));
-        free(result->path);
-        result->path = path;
-        index += length + 1;
+        result->resource = http_resource_parse(index);
+        index = endline + 1;
     }
 
     // Verify the beginning
@@ -249,7 +244,8 @@ http_request_t http_parse_request(char **stream)
 void http_request_destroy(http_request_t request)
 {
     // Free the path
-    free(request->path);
+    if(request->resource != NULL)
+        http_resource_destroy(request->resource);
 
     // Free the headers
     key_value_linked_list_destroy(request->headers);
