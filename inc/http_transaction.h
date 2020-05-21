@@ -15,7 +15,7 @@ typedef struct http_transaction_struct
     bool response_started;
 } *http_transaction_t;
 
-typedef void http_transaction_callback(http_transaction_t);
+typedef void http_transaction_callback(http_transaction_t, void*);
 
 http_transaction_t http_transaction_init(http_request_t request, socket_session_t session);
 void http_transaction_buffer_request_body(http_transaction_t transaction);
