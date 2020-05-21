@@ -2,14 +2,14 @@
 #define BIRCHRIDGE_HTTP_RESPONSE_H
 
 #include <stdlib.h>
-#include "http_header.h"
+#include "key_value_pair.h"
 
 typedef struct http_response_struct
 {
     int major_version;
     int minor_version;
     int status_code;
-    http_header_t headers;
+    key_value_linked_list_t headers;
     size_t content_length;
     void *context;
     size_t body_remaining;

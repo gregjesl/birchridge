@@ -80,8 +80,8 @@ void http_transaction_start_response(http_transaction_t transaction)
 
     // Write the headers
     {
-        http_header_t current = transaction->response->headers;
-        http_header_t next = NULL;
+        key_value_pair_t current = *transaction->response->headers;
+        key_value_pair_t next = NULL;
         while(current != NULL) {
             socket_session_write(transaction->session, current->key, strlen(current->key));
             socket_session_write(transaction->session, ": ", 2);

@@ -12,9 +12,7 @@ http_response_t http_response_init(const int major_version, const int minor_vers
     result->major_version = major_version;
     result->minor_version = minor_version;
     result->status_code = 204;
-    result->headers = http_header_init();
-    http_header_set_key(result->headers, content_length_key);
-    http_header_set_value(result->headers, "0\0");
+    result->headers = key_value_linked_list_init();
     result->body_remaining = 0;
     return result;
 }
@@ -22,8 +20,8 @@ http_response_t http_response_init(const int major_version, const int minor_vers
 void http_response_set_body_length(http_response_t response, size_t length)
 {
     assert(response->headers != NULL);
-    http_header_t current = response->headers;
-    http_header_t next = NULL;
+    key_value_pair_t current = *response->headers;
+    key_value_pair_t next = NULL;
     while(strcmp(current->key, content_length_key) != 0) {
         next = current->next;
         current = next;
@@ -39,12 +37,12 @@ void http_response_set_body_length(http_response_t response, size_t length)
     }
     char *value = (char*)malloc((digits + 1) * sizeof(char));
     sprintf(value, "%lu", length);
-    http_header_set_value(current, value);
+    key_value_pair_set_value(current, value);
     free(value);
 }
 
 void http_response_destroy(http_response_t response)
 {
-    http_header_destroy_chain(response->headers);
+    key_value_linked_list_destroy(response->headers);
     free(response);
 }

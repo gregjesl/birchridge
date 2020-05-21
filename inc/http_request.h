@@ -2,7 +2,7 @@
 #define BIRCHRIDGE_HTTP_REQUEST_H
 
 #include <stdlib.h>
-#include "http_header.h"
+#include "key_value_pair.h"
 
 enum http_method_enum
 {
@@ -25,7 +25,7 @@ typedef struct http_request_struct
     int minor_version;
     int method;
     char *path;
-    http_header_t headers;
+    key_value_linked_list_t headers;
     size_t content_length;
     void *context;
     http_body_callback *body_callback;

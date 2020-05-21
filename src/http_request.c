@@ -17,7 +17,7 @@ http_request_t http_request_init()
     result->path[0] = '\0';
 
     // Set the headers
-    result->headers = NULL;
+    result->headers = key_value_linked_list_init();
 
     // Set the content length
     result->content_length = 0;
@@ -220,10 +220,10 @@ http_request_t http_parse_request(char **stream)
             index = endline + 1;
         }
 
-        http_header_t header = http_header_init();
-        http_header_set_key(header, key);
-        http_header_set_value(header, value);
-        http_header_append(&result->headers, header);
+        key_value_pair_t header = key_value_pair_init();
+        key_value_pair_set_key(header, key);
+        key_value_pair_set_value(header, value);
+        key_value_linked_list_append(result->headers, header);
 
         // Check for a special header
         if(strcmp(key, "Content-Length\0") == 0) {
@@ -252,5 +252,5 @@ void http_request_destroy(http_request_t request)
     free(request->path);
 
     // Free the headers
-    http_header_destroy_chain(request->headers);
+    key_value_linked_list_destroy(request->headers);
 }
