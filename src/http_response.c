@@ -11,7 +11,7 @@ http_response_t http_response_init(const int major_version, const int minor_vers
     http_response_t result = (http_response_t)malloc(sizeof(struct http_response_struct));
     result->major_version = major_version;
     result->minor_version = minor_version;
-    result->status_code = 204;
+    result->status_code = -1;
     result->headers = key_value_linked_list_init();
     result->body_remaining = 0;
     return result;

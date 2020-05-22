@@ -45,7 +45,27 @@ void data_callback(socket_wrapper_t session)
                 http_transaction_start_response(context->transaction);
             }
 
-            // TODO: Verify the callback was successful
+            // Verify the callback was successful
+            if(!context->transaction->response_started) {
+                if(context->transaction->response->status_code < 0 || context->transaction->response->content_length > 0) {
+                    perror("Response not transmitted");
+                    context->transaction->response->status_code = 500;
+                    context->transaction->response->content_length = 0;
+                    context->transaction->response->body_remaining = 0;
+                }
+                http_transaction_start_response(context->transaction);
+                context->transaction->session->closure_requested = true;
+            }
+
+            if(context->transaction->request->body_remaining > 0) {
+                perror("Request body not fully read");
+                context->transaction->session->closure_requested = true;
+            }
+
+            // Check for keep-alive connection
+            if(!context->transaction->request->keep_alive) {
+                context->transaction->session->closure_requested = true;
+            }
 
             http_transaction_destroy(context->transaction);
             context->transaction = NULL;

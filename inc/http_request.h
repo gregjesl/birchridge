@@ -28,6 +28,7 @@ typedef struct http_request_struct
     http_resource_t resource;
     key_value_linked_list_t headers;
     size_t content_length;
+    bool keep_alive;
     void *context;
     http_body_callback *body_callback;
     size_t body_remaining;
