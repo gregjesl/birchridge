@@ -1,6 +1,8 @@
 #include "http_request.h"
 #include <string.h>
 
+#define IS_NEW_LINE(a) (strncmp(a, "\r\n", 2) == 0)
+
 http_request_t http_request_init()
 {
     http_request_t result = (http_request_t)malloc(sizeof(struct http_request_struct));
@@ -102,6 +104,7 @@ http_request_t http_parse_request(char **stream)
         for(size_t i = 0; i < 9; i++) {
             if(strcmp(method, methods[i]) == 0) {
                 result->method = i;
+                break;
             }
         }
         if(result->method < 0) {
@@ -172,14 +175,14 @@ http_request_t http_parse_request(char **stream)
     index++;
 
     // Verify the newline
-    if(*index != '\n') {
+    if(!IS_NEW_LINE(index)) {
         http_request_destroy(result);
         return NULL;
     }
-    index++;
+    index += 2;
 
     // Parse ALL the headers!
-    while(*index != '\n')
+    while(!IS_NEW_LINE(index))
     {
         char *key = NULL;
         char *value = NULL;
@@ -207,12 +210,12 @@ http_request_t http_parse_request(char **stream)
 
         // Read the value
         {
-            char *endline = strchr(index, '\n');
+            char *endline = strstr(index, "\r\n");
             const unsigned int length = endline - index;
             value = (char*)malloc(sizeof(char) * (length + 1));
             memcpy(value, index, length * sizeof(char));
             value[length] = '\0';
-            index = endline + 1;
+            index = endline + 2;
         }
 
         key_value_pair_t header = key_value_pair_init();
@@ -237,7 +240,7 @@ http_request_t http_parse_request(char **stream)
     }
 
     // Move the input index
-    *stream = index + 1;
+    *stream = index + 2;
     return result;
 }
 

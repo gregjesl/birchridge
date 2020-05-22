@@ -41,7 +41,23 @@ http_resource_t http_resource_parse(const char *resource)
         key_value_linked_list_append(result->query_parameters, param);
     }
 
-    const size_t path_length = query_start != NULL ? query_start - resource : strlen(resource);
+    size_t path_length = 0;
+    char *endline = strstr(resource, "\r\n");
+    if(query_start != NULL) {
+        path_length = query_start - resource;
+    } else {
+        const char *space = strchr(resource, ' ');
+        if(endline != NULL && space != NULL) {
+            path_length = endline < space ? endline - resource : space - resource;
+        } else if(endline != NULL) {
+            path_length = endline - resource;
+        } else if(space != NULL) {
+            path_length = space - resource;
+        } else {
+            path_length = strlen(resource);
+        }
+    }
+
     result->path = (char*)malloc((path_length + 1) * sizeof(char));
     strncpy(result->path, resource, path_length);
     return result;

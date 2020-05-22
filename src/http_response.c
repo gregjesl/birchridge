@@ -22,10 +22,21 @@ void http_response_set_body_length(http_response_t response, size_t length)
     assert(response->headers != NULL);
     key_value_pair_t current = *response->headers;
     key_value_pair_t next = NULL;
-    while(strcmp(current->key, content_length_key) != 0) {
-        next = current->next;
-        current = next;
-        assert(current != NULL);
+    if(current == NULL) {
+        current = key_value_pair_init();
+        key_value_linked_list_append(response->headers, current);
+        key_value_pair_set_key(current, content_length_key);
+    } else {
+        while(strcmp(current->key, content_length_key) != 0) {
+            next = current->next;
+            current = next;
+            if(current == NULL) {
+                current = key_value_pair_init();
+                key_value_linked_list_append(response->headers, current);
+                key_value_pair_set_key(current, content_length_key);
+                break;
+            }
+        }
     }
 
     // Determine the number of digits
@@ -39,6 +50,7 @@ void http_response_set_body_length(http_response_t response, size_t length)
     sprintf(value, "%lu", length);
     key_value_pair_set_value(current, value);
     free(value);
+    response->body_remaining = length;
 }
 
 void http_response_destroy(http_response_t response)
