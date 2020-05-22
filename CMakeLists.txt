@@ -48,4 +48,7 @@ else()
         enable_testing()
         add_subdirectory(test)
     endif()
+
+    # Make demo
+    add_subdirectory(demo)
 endif()
