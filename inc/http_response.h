@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "key_value_pair.h"
 
+typedef size_t(http_response_body_callback_t)(char *, size_t, void *);
+
 typedef struct http_response_struct
 {
     int major_version;
@@ -12,6 +14,7 @@ typedef struct http_response_struct
     key_value_linked_list_t headers;
     size_t content_length;
     void *context;
+    http_response_body_callback_t *body_callback;
     size_t body_remaining;
 } *http_response_t;
 

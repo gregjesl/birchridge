@@ -13,6 +13,7 @@ http_response_t http_response_init(const int major_version, const int minor_vers
     result->minor_version = minor_version;
     result->status_code = -1;
     result->headers = key_value_linked_list_init();
+    result->body_callback = NULL;
     result->body_remaining = 0;
     return result;
 }
@@ -51,6 +52,7 @@ void http_response_set_body_length(http_response_t response, size_t length)
     key_value_pair_set_value(current, value);
     free(value);
     response->body_remaining = length;
+    response->content_length = length;
 }
 
 void http_response_destroy(http_response_t response)

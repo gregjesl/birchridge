@@ -1,4 +1,5 @@
 #include "http_server.h"
+#include "socket_data.h"
 #include <assert.h>
 
 typedef struct http_context_struct
@@ -7,73 +8,139 @@ typedef struct http_context_struct
     http_transaction_t transaction;
 } *http_context_t;
 
+void __transmit_code(http_transaction_t transaction, int code)
+{
+    transaction->response->status_code = code;
+    transaction->response->content_length = 0;
+    transaction->response->body_remaining = 0;
+    http_transaction_start_response(transaction);
+    socket_wrapper_shutdown(transaction->session);
+    http_transaction_destroy(transaction);
+}
+
+void __internal_server_error(http_transaction_t transaction)
+{
+    __transmit_code(transaction, 500);
+}
+
 void data_callback(socket_wrapper_t session)
 {
+
     // Load the context
     http_context_t context = (http_context_t)session->context;
+
+    start:
 
     // Check for a loaded transaction
     if(context->transaction == NULL) {
         
-        // Header has not been parsed yet
-        socket_wrapper_buffer(session);
-        
         // Check for a full header
-        const char *header_end = strstr(session->buffer->data, "\r\n\r\n");
+        const char *header_end = strstr(session->data->buffer, "\r\n\r\n");
+        if(header_end == NULL) {
 
-        if(header_end != NULL) {
-
-            // Full header found
-            char *read_index = session->buffer->data;
-            http_request_t header = http_parse_request(&read_index);
-            if(header == NULL) {
-                // Handle error
+            // Check for a too-large header
+            if(session->data->buffer_length == socket_data_length(session->data)) {
+                http_request_t req = http_request_init();
+                req->major_version = 1;
+                req->minor_version = 1;
+                context->transaction = http_transaction_init(req, session);
+                __transmit_code(context->transaction, 431);
+                context->transaction = NULL;
+                return;
+            } else {
+                return;
             }
-
-            // Splice the buffer
-            const size_t header_length = header_end - session->buffer->data + 4;
-            socket_buffer_splice(session->buffer, header_length);
-
-            // Create the transaction
-            context->transaction = http_transaction_init(header, session);
-
-            // Search for a callback
-            const bool handled = http_handler_execute(context->server->handlers, context->transaction);
-            if(!handled) {
-                context->transaction->response->status_code = 404;
-                context->transaction->response->content_length = 0;
-                http_transaction_start_response(context->transaction);
-            }
-
-            // Verify the callback was successful
-            if(!context->transaction->response_started) {
-                if(context->transaction->response->status_code < 0 || context->transaction->response->content_length > 0) {
-                    perror("Response not transmitted");
-                    context->transaction->response->status_code = 500;
-                    context->transaction->response->content_length = 0;
-                    context->transaction->response->body_remaining = 0;
-                }
-                http_transaction_start_response(context->transaction);
-                context->transaction->session->closure_requested = true;
-            }
-
-            if(context->transaction->request->body_remaining > 0) {
-                perror("Request body not fully read");
-                context->transaction->session->closure_requested = true;
-            }
-
-            // Check for keep-alive connection
-            if(!context->transaction->request->keep_alive) {
-                context->transaction->session->closure_requested = true;
-            }
-
-            http_transaction_destroy(context->transaction);
-            context->transaction = NULL;
         }
+
+        // Full header found
+        char *read_index = session->data->buffer;
+        http_request_t header = http_parse_request(&read_index);
+        if(header == NULL) {
+            http_request_t req = http_request_init();
+            req->major_version = 1;
+            req->minor_version = 1;
+            context->transaction = http_transaction_init(req, session);
+            __internal_server_error(context->transaction);
+            context->transaction = NULL;
+            return;
+        }
+        socket_data_pop(session->data, read_index - session->data->buffer);
+
+        // Create the transaction
+        context->transaction = http_transaction_init(header, session);
+
+        // Search for a callback
+        const bool handled = http_handler_execute(context->server->handlers, context->transaction);
+        if(!handled) {
+            __transmit_code(context->transaction, 404);
+            context->transaction = NULL;
+            return;
+        }
+    }
+
+    // Process the request body
+    if(context->transaction->request->content_length > 0) {
+
+        const size_t buffer_bytes = session->data->buffer_length - socket_data_length(session->data);
+        const size_t bytes_to_read = buffer_bytes < context->transaction->request->content_length ? buffer_bytes : context->transaction->request->content_length;
+        context->transaction->request->body_remaining -= bytes_to_read;
+
+        if(context->transaction->request->body_callback != NULL) {
+            context->transaction->request->body_callback(
+                session->data->buffer,
+                bytes_to_read,
+                context->transaction->request->context
+            );
+        }
+
+        socket_data_pop(session->data, bytes_to_read);
+    }
+
+    // Check for a full body read
+    if(context->transaction->request->body_remaining > 0) {
+        return;
+    }
+
+    // Check for a valid response
+    if(context->transaction->response->status_code < 0 || 
+        (context->transaction->response->content_length > 0 && context->transaction->response->body_callback == NULL)
+    ) {
+        __internal_server_error(context->transaction);
+        context->transaction = NULL;
+        return;
+    }
+
+    // Send the response header
+    http_transaction_start_response(context->transaction);
+
+    // Read the body
+    char *shovel = (char*)malloc(session->data->buffer_length * sizeof(char));
+    do
+    {
+        const size_t bytes_to_read = context->transaction->response->body_remaining > session->data->buffer_length ? session->data->buffer_length : context->transaction->response->body_remaining;
+        const size_t bytes_read = context->transaction->response->body_callback(shovel, bytes_to_read, context->transaction->response->context);
+        if(bytes_read > bytes_to_read) {
+            // TODO: Error
+        }
+        http_transaction_send_response_body(context->transaction, shovel, bytes_read);
+    } while (context->transaction->response->body_remaining > 0);
+    free(shovel);
+
+    // Check for keep-alive connection
+    if(!context->transaction->request->keep_alive) {
+        socket_wrapper_shutdown(context->transaction->session);
+    }
+
+    http_transaction_destroy(context->transaction);
+    context->transaction = NULL;
+
+    // Check for more data to process
+    if(socket_data_length(session->data) > 0) {
+        goto start;
     }
 }
 
-void closure_callback(socket_wrapper_t socket)
+void finalize_callback(socket_wrapper_t socket)
 {
     http_context_t context = (http_context_t)socket->context;
     if(context->transaction != NULL) {
@@ -88,7 +155,8 @@ void connection_callback(socket_session_t session, void* context)
     wrapper->server = (http_server_t)context;
     wrapper->transaction = NULL;
     session->socket->context = wrapper;
-    socket_session_start(session, data_callback, closure_callback);
+    session->data_callback = data_callback;
+    session->finalize_callback = finalize_callback;
 }
 
 http_server_t http_server_init()

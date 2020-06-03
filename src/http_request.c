@@ -28,6 +28,7 @@ http_request_t http_request_init()
 
     // Set the body length
     result->body_callback = NULL;
+    result->body_read = 0;
     result->body_remaining = 0;
 
     return result;
@@ -227,7 +228,7 @@ http_request_t http_parse_request(char **stream)
         key_value_linked_list_append(result->headers, header);
 
         // Check for a special header
-        if(strcmp(key, "Content-Length\0") == 0) {
+        if(strcmp(key, "Content-Length") == 0) {
             const char digits = strlen(value);
             result->content_length = scan_int(*value);
             if(result->content_length > 9) {
@@ -239,6 +240,8 @@ http_request_t http_parse_request(char **stream)
                 const size_t next = scan_int(value[i]);
                 result->content_length += next;
             }
+            result->body_read = 0;
+            result->body_remaining = result->content_length;
         } else if(strcmp(key, "Connection") == 0) {
             if(strcmp(value, "Keep-Alive") == 0) {
                 result->keep_alive = true;
@@ -246,7 +249,7 @@ http_request_t http_parse_request(char **stream)
         }
     }
 
-    // Move the input index
+    // Move the buffer past the last newline
     *stream = index + 2;
     return result;
 }

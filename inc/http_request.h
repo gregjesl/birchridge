@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "key_value_pair.h"
 #include "http_resource.h"
+#include "socket_data.h"
 
 enum http_method_enum
 {
@@ -31,6 +32,7 @@ typedef struct http_request_struct
     bool keep_alive;
     void *context;
     http_body_callback *body_callback;
+    size_t body_read;
     size_t body_remaining;
 } *http_request_t;
 
