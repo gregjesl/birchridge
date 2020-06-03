@@ -13,7 +13,7 @@ void callback(http_transaction_t transaction, void *context)
 {
     transaction->response->status_code = 200;
     http_response_set_body_length(transaction->response, strlen(body));
-    transaction->response->body_callback = body_callback;
+    // transaction->response->body_callback = body_callback;
 }
 
 int main(int argc, char *argv[])

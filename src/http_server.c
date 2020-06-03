@@ -11,8 +11,7 @@ typedef struct http_context_struct
 void __transmit_code(http_transaction_t transaction, int code)
 {
     transaction->response->status_code = code;
-    transaction->response->content_length = 0;
-    transaction->response->body_remaining = 0;
+    http_response_set_body_length(transaction->response, 0);
     http_transaction_start_response(transaction);
     socket_wrapper_shutdown(transaction->session);
     http_transaction_destroy(transaction);
@@ -20,7 +19,10 @@ void __transmit_code(http_transaction_t transaction, int code)
 
 void __internal_server_error(http_transaction_t transaction)
 {
-    __transmit_code(transaction, 500);
+    const char *response = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+    socket_wrapper_write(transaction->session, response, strlen(response));
+    socket_wrapper_shutdown(transaction->session);
+    http_transaction_destroy(transaction);
 }
 
 void data_callback(socket_wrapper_t session)
