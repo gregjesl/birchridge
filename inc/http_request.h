@@ -19,8 +19,6 @@ enum http_method_enum
     HTTP_METHOD_PATCH
 };
 
-typedef void(http_body_callback)(char *, size_t, void*);
-
 typedef struct http_request_struct
 {
     int major_version;
@@ -31,8 +29,8 @@ typedef struct http_request_struct
     size_t content_length;
     bool keep_alive;
     void *context;
-    http_body_callback *body_callback;
-    size_t body_read;
+    char *body_buffer;
+    size_t body_buffer_length;
     size_t body_remaining;
 } *http_request_t;
 

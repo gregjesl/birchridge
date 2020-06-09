@@ -2,16 +2,15 @@
 #include "macrothreading_condition.h"
 #include "test.h"
 
-const char *test_phrase = "GET / HTTP/1.1\r\n\r\n";
-const char *expected_response = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+const char *test_phrase = "GET /test HTTP/1.1\r\n\r\n";
+const char *expected_response = "HTTP/1.1 404 Not Found\r\n\r\n";
 
 macrothread_condition_t callback_signal;
 macrothread_condition_t closure_signal;
 
 void server_callback(http_transaction_t transaction, void *context)
 {
-    transaction->response->status_code = 200;
-    http_response_set_body_length(transaction->response, 1);
+    transaction->response->status_code = 204;
 }
 
 void client_data_callback(socket_wrapper_t session)

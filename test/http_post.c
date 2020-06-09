@@ -2,10 +2,10 @@
 #include "macrothreading_condition.h"
 #include "test.h"
 
-const char *test_phrase = "GET / HTTP/1.1\r\n\r\n";
+const char *test_phrase = "GET / HTTP/1.1\r\nContent-Length: 12\r\n\r\nHello World!";
 char *test_body = "Hello World!";
 char *test_body_index = "\0";
-const char *test_phrase_keep_alive = "GET / HTTP/1.1\r\nConnection: Keep-Alive\r\n\r\n";
+const char *test_phrase_keep_alive = "GET / HTTP/1.1\r\nConnection: Keep-Alive\r\nContent-Length: 12\r\n\r\nHello World!";
 const char *expected_response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
 
 macrothread_condition_t callback_signal;
@@ -13,6 +13,15 @@ macrothread_condition_t closure_signal;
 
 void server_callback(http_transaction_t transaction, void *context)
 {
+    TEST_EQUAL(transaction->request->content_length, 12);
+    char body[13];
+    size_t bytes_read = 0;
+    while(bytes_read < 12) {
+        bytes_read = http_transaction_pull_request_body(transaction, body + bytes_read, 12 - bytes_read);
+        TEST_TRUE(bytes_read < 13);
+    }
+    body[12] = '\0';
+    TEST_STRING_EQUAL(body, test_body);
     transaction->response->status_code = 200;
     http_transaction_payload_response(transaction, test_body, strlen(test_body));
 }

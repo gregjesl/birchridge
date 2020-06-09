@@ -3,17 +3,10 @@
 
 const char *body = "Hello World!";
 
-size_t body_callback(char *buffer, size_t length, void *context)
-{
-    memcpy(buffer, body, strlen(body));
-    return strlen(body);
-}
-
 void callback(http_transaction_t transaction, void *context)
 {
     transaction->response->status_code = 200;
-    http_response_set_body_length(transaction->response, strlen(body));
-    // transaction->response->body_callback = body_callback;
+    http_transaction_payload_response(transaction, body, strlen(body));
 }
 
 int main(int argc, char *argv[])

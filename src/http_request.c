@@ -27,8 +27,8 @@ http_request_t http_request_init()
     result->keep_alive = false;
 
     // Set the body length
-    result->body_callback = NULL;
-    result->body_read = 0;
+    result->body_buffer = NULL;
+    result->body_buffer_length = 0;
     result->body_remaining = 0;
 
     return result;
@@ -240,7 +240,6 @@ http_request_t http_parse_request(char **stream)
                 const size_t next = scan_int(value[i]);
                 result->content_length += next;
             }
-            result->body_read = 0;
             result->body_remaining = result->content_length;
         } else if(strcmp(key, "Connection") == 0) {
             if(strcmp(value, "Keep-Alive") == 0) {
