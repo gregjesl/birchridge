@@ -1,21 +1,25 @@
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.11)
 
 project(birchridge)
 
+# Load macrothreading
+if(NOT TARGET macrothreading)
+    include(FetchContent)
+    FetchContent_Declare(macrothreading_lib
+        GIT_REPOSITORY https://github.com/gregjesl/macrothreading
+    )
+    FetchContent_Populate(macrothreading_lib)
+    add_subdirectory(${macrothreading_lib_SOURCE_DIR})
+endif()
+
 # Load socketsession
 if(NOT TARGET socket-sessions)
-    # Check to see if the folder is already cloned
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/socketsessions)
-        execute_process(COMMAND git pull origin master
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib/socketsessions
-        )
-    else()
-        execute_process(COMMAND git clone https://github.com/gregjesl/socket-sessions lib/socketsessions
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        )
-    endif()
-
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib/socketsessions")
+    include(FetchContent)
+    FetchContent_Declare(socketsession_lib
+        GIT_REPOSITORY https://github.com/gregjesl/socket-sessions
+    )
+    FetchContent_Populate(socketsession_lib)
+    add_subdirectory(${socketsession_lib_SOURCE_DIR})
 endif()
 
 # Get the source files
