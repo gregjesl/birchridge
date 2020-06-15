@@ -13,6 +13,9 @@ typedef struct http_response_struct
 } *http_response_t;
 
 http_response_t http_response_init(const int major_version, const int minor_version);
+key_value_pair_t http_response_find_header(http_response_t response, const char *key);
+void http_response_set_header(http_response_t response, const char *key, const char *value);
+void http_response_set_content_type(http_response_t response, const char *type);
 void http_response_destroy(http_response_t response);
 
 #endif

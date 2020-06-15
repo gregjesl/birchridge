@@ -6,7 +6,7 @@ const char *test_phrase = "GET / HTTP/1.1\r\n\r\n";
 char *test_body = "Hello World!";
 char *test_body_index = "\0";
 const char *test_phrase_keep_alive = "GET / HTTP/1.1\r\nConnection: Keep-Alive\r\n\r\n";
-const char *expected_response = "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World!";
+const char *expected_response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 12\r\n\r\nHello World!";
 
 macrothread_condition_t callback_signal;
 macrothread_condition_t closure_signal;
@@ -14,6 +14,7 @@ macrothread_condition_t closure_signal;
 void server_callback(http_transaction_t transaction, void *context)
 {
     transaction->response->status_code = 200;
+    http_response_set_content_type(transaction->response, "text/plain");
     http_transaction_payload_response(transaction, test_body, strlen(test_body));
 }
 
