@@ -1,6 +1,10 @@
 #ifndef BIRCHRIDGE_HTTP_RESOURCE_H
 #define BIRCHRIDGE_HTTP_RESOURCE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "key_value_pair.h"
 #include "stdbool.h"
 
@@ -13,5 +17,9 @@ typedef struct http_resource_struct
 http_resource_t http_resource_parse(const char *resource);
 bool http_path_filter(const char *path, const char *filter);
 void http_resource_destroy(http_resource_t resource);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

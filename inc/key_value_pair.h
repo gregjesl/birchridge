@@ -1,6 +1,10 @@
 #ifndef BIRCHRIDGE_KEY_VALUE_PAIR_H
 #define BIRCHRIDGE_KEY_VALUE_PAIR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 
 typedef struct key_value_pair_struct
@@ -23,5 +27,9 @@ void key_value_linked_list_append(key_value_linked_list_t list, key_value_pair_t
 size_t key_value_linked_list_count(const key_value_linked_list_t first);
 key_value_pair_t key_value_find(const key_value_linked_list_t first, const char *key);
 void key_value_linked_list_destroy(key_value_linked_list_t list);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

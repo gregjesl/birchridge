@@ -1,6 +1,10 @@
 #ifndef BIRCHRIDGE_HTTP_TRANSACTION_H
 #define BIRCHRIDGE_HTTP_TRANSACTION_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "http_request.h"
 #include "http_response.h"
 #include "socket_session.h"
@@ -25,5 +29,9 @@ void http_transaction_payload_response(http_transaction_t transaction, const cha
 void http_transaction_chunked_payload(http_transaction_t transaction, const char *data, const size_t length);
 void http_transaction_end_chunked_payload(http_transaction_t transaction);
 void http_transaction_destroy(http_transaction_t transaction);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

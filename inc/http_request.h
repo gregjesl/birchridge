@@ -1,6 +1,10 @@
 #ifndef BIRCHRIDGE_HTTP_REQUEST_H
 #define BIRCHRIDGE_HTTP_REQUEST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include "key_value_pair.h"
 #include "http_resource.h"
@@ -39,5 +43,9 @@ http_request_t http_parse_request(char **stream);
 const char * http_request_find_header(http_request_t request, const char *key);
 const char * http_request_find_query(http_request_t request, const char *key);
 void http_request_destroy(http_request_t request);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
