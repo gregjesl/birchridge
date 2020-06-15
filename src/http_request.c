@@ -1,5 +1,6 @@
 #include "http_request.h"
 #include <string.h>
+#include <assert.h>
 
 #define IS_NEW_LINE(a) (strncmp(a, "\r\n", 2) == 0)
 
@@ -126,6 +127,8 @@ http_request_t http_parse_request(char **stream)
             return NULL;
         }
         result->resource = http_resource_parse(index);
+        assert(strchr(result->resource->path, ' ') == NULL);
+        assert(strchr(result->resource->path, '?') == NULL);
         index = endline + 1;
     }
 
