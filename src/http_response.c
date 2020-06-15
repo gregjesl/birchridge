@@ -16,17 +16,7 @@ http_response_t http_response_init(const int major_version, const int minor_vers
 
 key_value_pair_t http_response_find_header(http_response_t response, const char *key)
 {
-    if(*response->headers == NULL) return NULL;
-    key_value_pair_t current = *response->headers;
-    key_value_pair_t next = NULL;
-    while(current != NULL) {
-        if(strcmp(key, current->key) == 0) {
-            return current;
-        }
-        next = current->next;
-        current = next;
-    }
-    return NULL;
+    return key_value_find(response->headers, key);
 }
 
 void http_response_set_header(http_response_t response, const char *key, const char *value)

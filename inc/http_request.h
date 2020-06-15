@@ -36,6 +36,8 @@ typedef struct http_request_struct
 
 http_request_t http_request_init();
 http_request_t http_parse_request(char **stream);
+const char * http_request_find_header(http_request_t request, const char *key);
+const char * http_request_find_query(http_request_t request, const char *key);
 void http_request_destroy(http_request_t request);
 
 #endif

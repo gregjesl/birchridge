@@ -91,6 +91,22 @@ size_t key_value_linked_list_count(const key_value_linked_list_t list)
     return result;
 }
 
+key_value_pair_t key_value_find(const key_value_linked_list_t first, const char *key)
+{
+    if(first == NULL || *first == NULL) return NULL;
+    key_value_pair_t current = *first;
+    key_value_pair_t next = NULL;
+    size_t result = 0;
+    while(current != NULL) {
+        if(strcmp(current->key, key) == 0) {
+            return current;
+        }
+        next = current->next;
+        current = next;
+    }
+    return NULL;
+}
+
 void key_value_linked_list_destroy(key_value_linked_list_t list)
 {
     key_value_pair_t current = *list;

@@ -21,6 +21,7 @@ typedef key_value_pair_t* key_value_linked_list_t;
 key_value_linked_list_t key_value_linked_list_init();
 void key_value_linked_list_append(key_value_linked_list_t list, key_value_pair_t addition);
 size_t key_value_linked_list_count(const key_value_linked_list_t first);
+key_value_pair_t key_value_find(const key_value_linked_list_t first, const char *key);
 void key_value_linked_list_destroy(key_value_linked_list_t list);
 
 #endif

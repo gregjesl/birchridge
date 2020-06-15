@@ -253,6 +253,18 @@ http_request_t http_parse_request(char **stream)
     return result;
 }
 
+const char * http_request_find_header(http_request_t request, const char *key)
+{
+    key_value_pair_t pair = key_value_find(request->headers, key);
+    return pair != NULL ? pair->key : NULL;
+}
+
+const char * http_request_find_query(http_request_t request, const char *key)
+{
+    key_value_pair_t pair = key_value_find(request->resource->query_parameters, key);
+    return pair != NULL ? pair->key : NULL;
+}
+
 void http_request_destroy(http_request_t request)
 {
     // Free the path

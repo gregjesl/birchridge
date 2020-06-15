@@ -14,7 +14,7 @@ int main(void)
     TEST_STRING_EQUAL(result->path, "/test.html");
     TEST_EQUAL(key_value_linked_list_count(result->query_parameters), 1);
     TEST_STRING_EQUAL(result->query_parameters[0]->key, "key");
-    TEST_STRING_EQUAL(result->query_parameters[0]->value, "value");
+    TEST_STRING_EQUAL(key_value_find(result->query_parameters, "key")->value, "value");
     http_resource_destroy(result);
 
     const char *two_param = "/test2.html?birch=ridge&hello=world";
@@ -22,8 +22,8 @@ int main(void)
     TEST_STRING_EQUAL(result->path, "/test2.html");
     TEST_EQUAL(key_value_linked_list_count(result->query_parameters), 2);
     TEST_STRING_EQUAL(result->query_parameters[0]->key, "birch");
-    TEST_STRING_EQUAL(result->query_parameters[0]->value, "ridge");
+    TEST_STRING_EQUAL(key_value_find(result->query_parameters, "birch")->value, "ridge");
     TEST_STRING_EQUAL(result->query_parameters[0]->next->key, "hello");
-    TEST_STRING_EQUAL(result->query_parameters[0]->next->value, "world");
+    TEST_STRING_EQUAL(key_value_find(result->query_parameters, "hello")->value, "world");
     http_resource_destroy(result);
 }
