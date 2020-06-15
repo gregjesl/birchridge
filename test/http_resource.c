@@ -5,6 +5,7 @@ int main(void)
 {
     const char *simple = "/";
     http_resource_t result = http_resource_parse(simple);
+    TEST_NOT_NULL(result);
     TEST_STRING_EQUAL(result->path, simple);
     TEST_EQUAL(key_value_linked_list_count(result->query_parameters), 0);
     http_resource_destroy(result);

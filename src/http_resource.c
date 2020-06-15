@@ -7,10 +7,14 @@ http_resource_t http_resource_parse(const char *resource)
     const char *index = resource;
     http_resource_t result = (http_resource_t)malloc(sizeof(struct http_resource_struct));
 
+    // Get the first line
+    const char *endspace = strchr(index, ' ');
+    const size_t max_length = (endspace != NULL) ? endspace - resource : strlen(resource);
+
     // Get query parameters
     result->query_parameters = key_value_linked_list_init();
     const char *query_start = strchr(resource, '?');
-    if(query_start != NULL) {
+    if(query_start != NULL && query_start < resource + max_length) {
         // Move past the question mark
         index = query_start + 1;
 
@@ -35,27 +39,19 @@ http_resource_t http_resource_parse(const char *resource)
         key_value_pair_set_key_n(param, index, value_start - index);
         index = value_start + 1;
 
-        const char *endspace = strchr(index, ' ');
         const size_t last_length = (endspace != NULL) ? endspace - index : strlen(index);
         key_value_pair_set_value_n(param, index, last_length);
         key_value_linked_list_append(result->query_parameters, param);
+    } else {
+        query_start = NULL;
     }
 
     size_t path_length = 0;
-    char *endline = strstr(resource, "\r\n");
     if(query_start != NULL) {
         path_length = query_start - resource;
     } else {
-        const char *space = strchr(resource, ' ');
-        if(endline != NULL && space != NULL) {
-            path_length = endline < space ? endline - resource : space - resource;
-        } else if(endline != NULL) {
-            path_length = endline - resource;
-        } else if(space != NULL) {
-            path_length = space - resource;
-        } else {
-            path_length = strlen(resource);
-        }
+        // No query
+        path_length = max_length;
     }
 
     result->path = (char*)malloc((path_length + 1) * sizeof(char));
