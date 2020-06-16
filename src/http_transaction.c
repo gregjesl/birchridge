@@ -9,6 +9,8 @@ const char *response_code_bad_request = "Bad Request";
 const char *response_code_unauthorized = "Unauthorized";
 const char *response_code_forbidden = "Forbidden";
 const char *response_code_not_found = "Not Found";
+const char *response_code_method_not_allowed = "Method Not Allowed";
+const char *response_code_conflict = "Conflict";
 const char *response_code_header_too_large = "Request Header Fields Too Large";
 const char *response_code_internal_error = "Internal Server Error";
 
@@ -65,43 +67,50 @@ void __start_response(http_transaction_t transaction)
     }
 
     {
-        const char *response_text = NULL;
-        switch (transaction->response->status_code)
-        {
-        case 200:
-            response_text = response_code_ok;
-            break;
-        case 201:
-            response_text = response_code_created;
-            break;
-        case 202:
-            response_text = response_code_accepted;
-            break;
-        case 204:
-            response_text = response_code_no_content;
-            break;
-        case 400: 
-            response_text = response_code_bad_request;
-            break;
-        case 401:
-            response_text = response_code_unauthorized;
-            break;
-        case 403:
-            response_text = response_code_forbidden;
-            break;
-        case 404:
-            response_text = response_code_not_found;
-            break;
-        case 500:
-        default:
-            transaction->response->status_code = 500;
-            response_text = response_code_internal_error;
-            break;
+        if(transaction->response->status_text == NULL) {
+            switch (transaction->response->status_code)
+            {
+            case 200:
+                transaction->response->status_text = response_code_ok;
+                break;
+            case 201:
+                transaction->response->status_text = response_code_created;
+                break;
+            case 202:
+                transaction->response->status_text = response_code_accepted;
+                break;
+            case 204:
+                transaction->response->status_text = response_code_no_content;
+                break;
+            case 400: 
+                transaction->response->status_text = response_code_bad_request;
+                break;
+            case 401:
+                transaction->response->status_text = response_code_unauthorized;
+                break;
+            case 403:
+                transaction->response->status_text = response_code_forbidden;
+                break;
+            case 404:
+                transaction->response->status_text = response_code_not_found;
+                break;
+            case 405:
+                transaction->response->status_text = response_code_method_not_allowed;
+                break;
+            case 409:
+                transaction->response->status_text = response_code_conflict;
+                break;
+            case 500:
+            default:
+                transaction->response->status_code = 500;
+                transaction->response->status_text = response_code_internal_error;
+                break;
+            }
         }
         char status_code[5];
         sprintf(status_code, "%i ", transaction->response->status_code);
         socket_wrapper_write(transaction->session, status_code, strlen(status_code));
-        socket_wrapper_write(transaction->session, response_text, strlen(response_text));
+        socket_wrapper_write(transaction->session, transaction->response->status_text, strlen(transaction->response->status_text));
         socket_wrapper_write(transaction->session, "\r\n", 2);
     }
 

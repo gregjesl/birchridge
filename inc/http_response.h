@@ -13,6 +13,7 @@ typedef struct http_response_struct
     int major_version;
     int minor_version;
     int status_code;
+    const char *status_text;
     key_value_linked_list_t headers;
 } *http_response_t;
 

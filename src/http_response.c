@@ -10,6 +10,7 @@ http_response_t http_response_init(const int major_version, const int minor_vers
     result->major_version = major_version;
     result->minor_version = minor_version;
     result->status_code = -1;
+    result->status_text = NULL;
     result->headers = key_value_linked_list_init();
     return result;
 }
