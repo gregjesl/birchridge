@@ -56,6 +56,7 @@ http_resource_t http_resource_parse(const char *resource)
 
     result->path = (char*)malloc((path_length + 1) * sizeof(char));
     strncpy(result->path, resource, path_length);
+    result->path[path_length] = '\0';
     return result;
 }
 

@@ -20,6 +20,7 @@ void _string_copy(char **output, const char *input, size_t length)
         free(*output);
     *output = (char*)malloc((length + 1) * sizeof(char));
     strncpy(*output, input, length);
+    *output[length] = '\0';
 }
 
 void key_value_pair_set_key(key_value_pair_t header, const char *key)
