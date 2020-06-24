@@ -16,6 +16,8 @@ const char *response_code_internal_error = "Internal Server Error";
 
 const char *content_length_key = "Content-Length";
 
+const char *newline = "\r\n";
+
 http_transaction_t http_transaction_init(http_request_t request, socket_wrapper_t session)
 {
     http_transaction_t result = (http_transaction_t)malloc(sizeof(struct http_transaction_struct));
@@ -111,7 +113,7 @@ void __start_response(http_transaction_t transaction)
         sprintf(status_code, "%i ", transaction->response->status_code);
         socket_wrapper_write(transaction->session, status_code, strlen(status_code));
         socket_wrapper_write(transaction->session, transaction->response->status_text, strlen(transaction->response->status_text));
-        socket_wrapper_write(transaction->session, "\r\n", 2);
+        socket_wrapper_write(transaction->session, newline, 2);
     }
 
     // Write the headers
@@ -122,14 +124,14 @@ void __start_response(http_transaction_t transaction)
             socket_wrapper_write(transaction->session, current->key, strlen(current->key));
             socket_wrapper_write(transaction->session, ": ", 2);
             socket_wrapper_write(transaction->session, current->value, strlen(current->value));
-            socket_wrapper_write(transaction->session, "\r\n", 2);
+            socket_wrapper_write(transaction->session, newline, 2);
             next = current->next;
             current = next;
         }
     }
 
     // Write the empty line
-    socket_wrapper_write(transaction->session, "\r\n", 2);
+    socket_wrapper_write(transaction->session, newline, 2);
 
     // Mark that the head has been sent
     transaction->head_sent = true;
@@ -257,9 +259,9 @@ void http_transaction_chunked_payload(http_transaction_t transaction, const char
 
     // Send the hex value
     socket_wrapper_write(transaction->session, hex, strlen(hex));
-    socket_wrapper_write(transaction->session, "\r\n", 2);
+    socket_wrapper_write(transaction->session, newline, 2);
     socket_wrapper_write(transaction->session, data, length);
-    socket_wrapper_write(transaction->session, "\r\n", 2);
+    socket_wrapper_write(transaction->session, newline, 2);
 }
 
 void http_transaction_end_chunked_payload(http_transaction_t transaction)
@@ -270,6 +272,36 @@ void http_transaction_end_chunked_payload(http_transaction_t transaction)
     }
     
     socket_wrapper_write(transaction->session, "0\r\n\r\n", 5);
+    transaction->response_complete = true;
+}
+
+void http_transaction_start_sse(http_transaction_t transaction)
+{
+    transaction->response->status_code = 200;
+    http_response_set_header(transaction->response, "Content-Type", "text/event-stream");
+    __start_response(transaction);
+    assert(transaction->head_sent);
+}
+
+void http_transaction_publish_sse(http_transaction_t transaction, const char *event, const char **data, size_t num_data)
+{
+    if(event == NULL && num_data == 0) return;
+
+    if(event != NULL) {
+        socket_wrapper_write(transaction->session, event, strlen(event));
+        socket_wrapper_write(transaction->session, newline, 2);
+    }
+
+    for(size_t i = 0; i < num_data; i++) {
+        socket_wrapper_write(transaction->session, data[i], strlen(data[i]));
+        socket_wrapper_write(transaction->session, newline, 2);
+    }
+
+    socket_wrapper_write(transaction->session, newline, 2);
+}
+
+void http_transaction_end_sse(http_transaction_t transaction)
+{
     transaction->response_complete = true;
 }
 
