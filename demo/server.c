@@ -9,6 +9,19 @@ void callback(http_transaction_t transaction, void *context)
     http_transaction_payload_response(transaction, body, strlen(body));
 }
 
+void event_callback(http_transaction_t transaction, void *context)
+{
+    char *data = malloc(2);
+    http_transaction_start_sse(transaction);
+    for(int i = 5; i > 0; i--) {
+        sprintf(data, "%i", i);
+        http_transaction_publish_sse(transaction, "countdown", &data, 1);
+        macrothread_delay(1000);
+    }
+    http_transaction_end_sse(transaction);
+    free(data);
+}
+
 int main(int argc, char *argv[])
 {
     if(argc != 2) {
@@ -24,6 +37,7 @@ int main(int argc, char *argv[])
 
     http_server_t server = http_server_init();
     http_server_add_handler(server, "/", callback, NULL);
+    http_server_add_handler(server, "/sse", event_callback, NULL);
     http_server_start(server, port, 5);
     printf("Press any key to stop...");
     getchar();
