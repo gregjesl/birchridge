@@ -283,16 +283,20 @@ void http_transaction_start_sse(http_transaction_t transaction)
     assert(transaction->head_sent);
 }
 
-void http_transaction_publish_sse(http_transaction_t transaction, const char *event, const char **data, size_t num_data)
+void http_transaction_publish_sse(http_transaction_t transaction, const char *event, char **data, size_t num_data)
 {
     if(event == NULL && num_data == 0) return;
 
     if(event != NULL) {
+        const char *event_tag = "event: ";
+        socket_wrapper_write(transaction->session, event_tag, strlen(event_tag));
         socket_wrapper_write(transaction->session, event, strlen(event));
         socket_wrapper_write(transaction->session, newline, 2);
     }
 
     for(size_t i = 0; i < num_data; i++) {
+        const char *data_tag = "data: ";
+        socket_wrapper_write(transaction->session, data_tag, strlen(data_tag));
         socket_wrapper_write(transaction->session, data[i], strlen(data[i]));
         socket_wrapper_write(transaction->session, newline, 2);
     }

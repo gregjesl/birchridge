@@ -29,7 +29,7 @@ void http_transaction_payload_response(http_transaction_t transaction, const cha
 void http_transaction_chunked_payload(http_transaction_t transaction, const char *data, const size_t length);
 void http_transaction_end_chunked_payload(http_transaction_t transaction);
 void http_transaction_start_sse(http_transaction_t transaction);
-void http_transaction_publish_sse(http_transaction_t transaction, const char *event, const char **data, size_t num_data);
+void http_transaction_publish_sse(http_transaction_t transaction, const char *event, char **data, size_t num_data);
 void http_transaction_end_sse(http_transaction_t transaction);
 void http_transaction_destroy(http_transaction_t transaction);
 
